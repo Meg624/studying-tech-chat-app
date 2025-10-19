@@ -1,7 +1,7 @@
 export interface Channel {
   id: number;
   name: string;
-  description: string;
+  description: string | null;
 }
 
 export interface DirectMessage {
@@ -13,3 +13,4 @@ export interface MyProfile {
   name: string;
   email: string;
 }
+
