@@ -11,16 +11,27 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+// 型
+import { ChannelType } from '@/types/workspace';
 // データ
-import { channels, directMessages } from '@/data/workspace';
+import {
+  MY_USER_ID,
+  users,
+  channels,
+  messages,
+  getDirectMessagePartner,
+} from '@/data/workspace';
 
 export default function WorkSpacePage() {
-  // TODO: これらのデータは、実際にはデータベースから取得する
-
-  // 自分が投稿したメッセージ数
-  const myMessageCount = 128;
-  // ワークスペース全体のメンバー数
-  const workspaceMemberCount = 12;
+  const channelsWithMe = channels.filter((channel) =>
+    channel.members.some((member) => member.id === MY_USER_ID)
+  );
+  const normalChannels = channelsWithMe.filter(
+    (channel) => channel.channelType === ChannelType.CHANNEL
+  );
+  const directMessages = channelsWithMe.filter(
+    (channel) => channel.channelType === ChannelType.DM
+  );
 
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
@@ -48,9 +59,7 @@ export default function WorkSpacePage() {
             <Hash className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {channels.length + directMessages.length}
-            </div>
+            <div className="text-2xl font-bold">{channelsWithMe.length}</div>
             <p className="text-xs text-muted-foreground">
               参加しているチャンネル・DM 数
             </p>
@@ -63,7 +72,12 @@ export default function WorkSpacePage() {
             <MessageSquare className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{myMessageCount}</div>
+            <div className="text-2xl font-bold">
+              {
+                messages.filter((message) => message.sender.id === MY_USER_ID)
+                  .length
+              }
+            </div>
             <p className="text-xs text-muted-foreground">
               自分が投稿したメッセージ数
             </p>
@@ -76,7 +90,7 @@ export default function WorkSpacePage() {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{workspaceMemberCount}</div>
+            <div className="text-2xl font-bold">{users.length}</div>
             <p className="text-xs text-muted-foreground">
               ワークスペース全体のメンバー数
             </p>
@@ -92,7 +106,7 @@ export default function WorkSpacePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {channels.map((channel) => (
+              {normalChannels.map((channel) => (
                 <div key={channel.id} className="flex items-center">
                   <div className="mr-4 flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
                     <Hash className="h-5 w-5 text-primary" />
@@ -125,7 +139,7 @@ export default function WorkSpacePage() {
                 <div key={dm.id} className="flex items-center">
                   <div className="mr-4 flex h-9 w-9 items-center justify-center rounded-full bg-primary/10">
                     <span className="font-medium text-primary">
-                      {dm.name.charAt(0)}
+                      {getDirectMessagePartner(dm, MY_USER_ID).name.charAt(0)}
                     </span>
                   </div>
                   <div className="space-y-1 flex-1">
@@ -134,7 +148,7 @@ export default function WorkSpacePage() {
                         href={`/workspace/channel/${dm.id}`}
                         className="font-medium hover:underline"
                       >
-                        {dm.name}
+                        {getDirectMessagePartner(dm, MY_USER_ID).name}
                       </Link>
                     </div>
                   </div>

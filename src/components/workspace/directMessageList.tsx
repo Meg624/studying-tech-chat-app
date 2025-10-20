@@ -6,13 +6,45 @@ import { PlusCircle } from 'lucide-react';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 // 型
-import type { DirectMessage } from '@/types/workspace';
+import type { Channel } from '@/types/workspace';
+// データ
+import { MY_USER_ID, getDirectMessagePartner } from '@/data/workspace';
 
-export default function DirectMessageList({
-  directMessages,
+function DMButton({
+  channel,
   pathname,
 }: {
-  directMessages: DirectMessage[];
+  channel: Channel;
+  pathname: string;
+}) {
+  const partnerName = getDirectMessagePartner(channel, MY_USER_ID).name;
+
+  return (
+    <Button
+      key={channel.id}
+      variant={
+        pathname === `/workspace/channel/${channel.id}` ? 'secondary' : 'ghost'
+      }
+      className="w-full justify-start gap-2"
+      asChild
+    >
+      <Link href={`/workspace/channel/${channel.id}`}>
+        <div className="relative">
+          <Avatar className="h-4 w-4">
+            <AvatarFallback>{partnerName.charAt(0)}</AvatarFallback>
+          </Avatar>
+        </div>
+        {partnerName}
+      </Link>
+    </Button>
+  );
+}
+
+export default function DirectMessageList({
+  channels,
+  pathname,
+}: {
+  channels: Channel[];
   pathname: string;
 }) {
   return (
@@ -28,24 +60,8 @@ export default function DirectMessageList({
       </div>
 
       <div className="space-y-1 mt-2">
-        {directMessages.map((dm) => (
-          <Button
-            key={dm.id}
-            variant={
-              pathname === `/workspace/channel/${dm.id}` ? 'secondary' : 'ghost'
-            }
-            className="w-full justify-start gap-2"
-            asChild
-          >
-            <Link href={`/workspace/channel/${dm.id}`}>
-              <div className="relative">
-                <Avatar className="h-4 w-4">
-                  <AvatarFallback>{dm.name.charAt(0)}</AvatarFallback>
-                </Avatar>
-              </div>
-              {dm.name}
-            </Link>
-          </Button>
+        {channels.map((channel) => (
+          <DMButton key={channel.id} channel={channel} pathname={pathname} />
         ))}
       </div>
     </div>
