@@ -32,7 +32,7 @@ export default function WorkSpacePage() {
   const directMessages = channelsWithMe.filter(
     (channel) => channel.channelType === ChannelType.DM
   );
-
+  
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       {/* ヘッダー */}
@@ -49,7 +49,6 @@ export default function WorkSpacePage() {
           </Button>
         </div>
       </div>
-
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

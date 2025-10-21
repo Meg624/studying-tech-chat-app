@@ -5,6 +5,7 @@ import { ArrowRight } from 'lucide-react';
 // shadcn/ui
 import { Button } from '@/components/ui/button';
 
+
 export default function TopPage() {
   return (
     <div className="flex min-h-screen flex-col">

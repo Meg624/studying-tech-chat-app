@@ -8,6 +8,8 @@ import MessageView from '@/components/channel/messageView';
 // データ
 import { getChannel, getChannelMessages, MY_USER_ID } from '@/data/workspace';
 
+
+
 export default function ChannelPage() {
   // URL のパスからチャンネル ID を取得
   const { channelId } = useParams<{ channelId: string }>();
