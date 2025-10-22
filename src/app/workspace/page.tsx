@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/card';
 // 自作コンポーネント
 import CreateChannelModal from '@/components/workspace/createChannelModal';
+import CreateDirectMessageModal from '@/components/workspace/createDirectMessageModal';
 // 型
 import { ChannelType } from '@/types/workspace';
 // データ
@@ -30,6 +31,7 @@ import {
 
 export default function WorkSpacePage() {
   const [isChannelModalOpen, setIsChannelModalOpen] = useState<boolean>(false);
+  const [isDmModalOpen, setIsDmModalOpen] = useState<boolean>(false);
 
   const channelsWithMe = channels.filter((channel) =>
     channel.members.some((member) => member.id === MY_USER_ID)
@@ -47,7 +49,11 @@ export default function WorkSpacePage() {
       <div className="flex items-center justify-between">
         <h2 className="text-3xl font-bold tracking-tight">ダッシュボード</h2>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsDmModalOpen(true)}
+          >
             <Users className="mr-2 h-4 w-4" />
             新規 DM
           </Button>
@@ -61,6 +67,10 @@ export default function WorkSpacePage() {
       <CreateChannelModal
         isOpen={isChannelModalOpen}
         onOpenChange={setIsChannelModalOpen}
+      />
+      <CreateDirectMessageModal
+        isOpen={isDmModalOpen}
+        onOpenChange={setIsDmModalOpen}
       />
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
