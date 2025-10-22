@@ -1,3 +1,7 @@
+'use client';
+
+// React
+import { useState } from 'react';
 // Next.js
 import Link from 'next/link';
 // アイコン
@@ -11,6 +15,8 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+// 自作コンポーネント
+import CreateChannelModal from '@/components/workspace/createChannelModal';
 // 型
 import { ChannelType } from '@/types/workspace';
 // データ
@@ -23,6 +29,8 @@ import {
 } from '@/data/workspace';
 
 export default function WorkSpacePage() {
+  const [isChannelModalOpen, setIsChannelModalOpen] = useState<boolean>(false);
+
   const channelsWithMe = channels.filter((channel) =>
     channel.members.some((member) => member.id === MY_USER_ID)
   );
@@ -32,7 +40,7 @@ export default function WorkSpacePage() {
   const directMessages = channelsWithMe.filter(
     (channel) => channel.channelType === ChannelType.DM
   );
-  
+
   return (
     <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
       {/* ヘッダー */}
@@ -43,12 +51,18 @@ export default function WorkSpacePage() {
             <Users className="mr-2 h-4 w-4" />
             新規 DM
           </Button>
-          <Button size="sm">
+          <Button size="sm" onClick={() => setIsChannelModalOpen(true)}>
             <MessageSquare className="mr-2 h-4 w-4" />
             新規チャンネル
           </Button>
         </div>
       </div>
+
+      <CreateChannelModal
+        isOpen={isChannelModalOpen}
+        onOpenChange={setIsChannelModalOpen}
+      />
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
