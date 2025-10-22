@@ -10,13 +10,26 @@ import { Input } from '@/components/ui/input';
 
 export default function MessageForm({
   channelDisplayName,
+  handleSendMessage,
 }: {
   channelDisplayName: string;
+  handleSendMessage: (content: string) => void;
 }) {
   const [content, setContent] = useState<string>('');
 
+  const handleSubmit = (e: React.FormEvent) => {
+    // フォームのデフォルトの送信を阻止
+    e.preventDefault();
+    // メッセージが空の場合は送信しない (ここでもバリデーションをかける)
+    if (!content.trim()) return;
+    // メッセージを送信する (この処理は、親コンポーネントから渡された関数)
+    handleSendMessage(content);
+    // メッセージ, input の内容をリセットする
+    setContent('');
+  };
+
   return (
-    <footer className="border-t bg-background p-4">
+    <footer onSubmit={handleSubmit} className="border-t bg-background p-4">
       <form className="flex items-center gap-4">
         <Input
           placeholder={`${channelDisplayName}にメッセージを送信`}
