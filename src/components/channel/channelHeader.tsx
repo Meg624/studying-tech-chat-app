@@ -1,15 +1,23 @@
+'use client';
+
+// React
+import { useState } from 'react';
 // アイコン
 import { Hash, Users } from 'lucide-react';
 // shadcn/ui
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+// 自作コンポーネント
+import InviteMemberModal from './inviteMemberModal';
 // 型
 import { ChannelType, type Channel } from '@/types/workspace';
 // データ
 import { getDirectMessagePartner, MY_USER_ID } from '@/data/workspace';
 
 export default function ChannelHeader({ channel }: { channel: Channel }) {
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState<boolean>(false);
+
   const partner =
     channel.channelType === ChannelType.DM
       ? getDirectMessagePartner(channel, MY_USER_ID)
@@ -41,10 +49,20 @@ export default function ChannelHeader({ channel }: { channel: Channel }) {
               {channel.description} ({channel.members.length} 人のメンバー)
             </p>
             <div className="ml-auto flex items-center gap-2">
-              <Button variant="outline" size="sm">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsInviteModalOpen(true)}
+              >
                 <Users className="mr-2 h-4 w-4" />
                 メンバーを招待
               </Button>
+
+              <InviteMemberModal
+                isOpen={isInviteModalOpen}
+                onOpenChange={setIsInviteModalOpen}
+                channel={channel}
+              />
             </div>
           </>
         )}
