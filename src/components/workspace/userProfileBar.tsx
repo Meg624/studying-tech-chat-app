@@ -37,8 +37,7 @@ import type { User } from '@/types/workspace';
 import { logout } from '@/app/logout/actions';
 // ストア
 import { useUserStore } from '@/store/useUserStore';
-//import { useChannelStore } from '@/store/useChannelStore';
-//import { useMessageStore } from '@/store/useMessageStore';
+import { useChannelStore } from '@/store/useChannelStore';
 
 export default function UserProfileBar({ user }: { user: User }) {
   const [settingsOpen, setSettingsOpen] = useState<boolean>(false);
@@ -46,6 +45,7 @@ export default function UserProfileBar({ user }: { user: User }) {
   const [userName, setUserName] = useState<string>(user.name);
   const { theme, setTheme } = useTheme();
   const { clearUser } = useUserStore();
+  const { clearChannels } = useChannelStore();
 
   // ダークモードの切り替え
   const toggleDarkMode = () => {
@@ -57,6 +57,7 @@ export default function UserProfileBar({ user }: { user: User }) {
     try {
       // クライアント側のストア状態をクリア
       clearUser();
+      clearChannels();
       // サーバー側でのログアウト処理
       await logout();
     } catch (error) {

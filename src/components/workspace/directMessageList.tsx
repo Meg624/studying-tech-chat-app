@@ -14,7 +14,9 @@ import CreateDirectMessageModal from './createDirectMessageModal';
 // 型
 import type { Channel } from '@/types/workspace';
 // データ
-import { MY_USER_ID, getDirectMessagePartner } from '@/data/workspace';
+import { getDirectMessagePartner } from '@/lib/db';
+// ストア
+import { useUserStore } from '@/store/useUserStore';
 
 function DMButton({
   channel,
@@ -23,7 +25,9 @@ function DMButton({
   channel: Channel;
   pathname: string;
 }) {
-  const partnerName = getDirectMessagePartner(channel, MY_USER_ID).name;
+  // ユーザーストアからユーザー情報を取得
+  const { user } = useUserStore();
+  const partnerName = getDirectMessagePartner(channel, user?.id ?? '').name;
 
   return (
     <Button
