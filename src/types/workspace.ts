@@ -7,30 +7,30 @@
  *
  * @note 実際のテーブル構造としては、 (Channel-User) 中間テーブルを作成する予定
  */
+
 export enum ChannelType {
   CHANNEL = 'channel',
   DM = 'dm',
 }
 
 export interface User {
-  id: number;
+  id: string;
   name: string;
-  email: string;
+  email?: string;
 }
 
-// DM の場合は name と description なし
 export interface Channel {
-  id: number;
+  id: string;
   name?: string;
   description?: string;
   channelType: ChannelType;
   members: User[];
 }
+
 export interface Message {
-  id: number;
-  channel: Channel;
+  id: string;
+  channelId: string;
   sender: User;
   content: string;
   createdAt: Date;
 }
-
