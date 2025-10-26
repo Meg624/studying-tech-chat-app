@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 // 型
-import { User, ChannelType, Channel } from '@/types/workspace';
+import { User, ChannelType, Channel, Message } from '@/types/workspace';
 
 /**
  * ユーザー関連の操作
@@ -76,6 +76,7 @@ export const channelOperations = {
       });
   },
 };
+
 /**
  * DM において、相手のユーザーを取得する
  */
@@ -90,3 +91,42 @@ export function getDirectMessagePartner(
 
   return { id: otherUser.id, name: otherUser.name };
 }
+
+/**
+ * メッセージ関連の操作
+ */
+export const messageOperations = {
+  // チャンネル ID からメッセージを取得 （そのチャンネルのメッセージ）
+  async getMessagesByChannelId(channelId: string): Promise<Message[]> {
+    const messages = await prisma.message.findMany({
+      where: { channelId },
+      include: { sender: true, channel: true },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    return messages.map((message) => ({
+      id: message.id,
+      content: message.content,
+      createdAt: message.createdAt,
+      sender: { id: message.sender.id, name: message.sender.name },
+      channelId: message.channel.id,
+    }));
+  },
+
+  // ユーザー ID からメッセージを取得 （そのユーザーが送信したメッセージ）
+  async getMessagesBySenderId(senderId: string): Promise<Message[]> {
+    const messages = await prisma.message.findMany({
+      where: { senderId },
+      include: { sender: true, channel: true },
+      orderBy: { createdAt: 'desc' },
+    });
+
+    return messages.map((message) => ({
+      id: message.id,
+      content: message.content,
+      createdAt: message.createdAt,
+      sender: { id: message.sender.id, name: message.sender.name },
+      channelId: message.channel.id,
+    }));
+  },
+};

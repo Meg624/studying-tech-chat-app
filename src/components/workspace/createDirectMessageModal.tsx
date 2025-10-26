@@ -16,8 +16,8 @@ import {
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-// データ
-import { MY_USER_ID, users } from '@/data/workspace';
+// ストア
+import { useUserStore } from '@/store/useUserStore';
 // 型
 import type { User } from '@/types/workspace';
 
@@ -34,7 +34,7 @@ export default function CreateDirectMessageModal({
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   // 自分以外のユーザーを取得 (TODO: 実際には、まだ DM を開始していないユーザーに絞り込む)
-  const otherUsers = users.filter((user) => user.id !== MY_USER_ID);
+  const { otherUsers } = useUserStore();
 
   // 検索クエリに基づいてユーザーをフィルタリング
   const filteredUsers = otherUsers.filter(

@@ -13,15 +13,15 @@ import InviteMemberModal from './inviteMemberModal';
 // 型
 import { ChannelType, type Channel } from '@/types/workspace';
 // データ
-import { getDirectMessagePartner, MY_USER_ID } from '@/data/workspace';
+import { getDirectMessagePartner } from '@/lib/db';
+// ストア
+import { useUserStore } from '@/store/useUserStore';
 
 export default function ChannelHeader({ channel }: { channel: Channel }) {
   const [isInviteModalOpen, setIsInviteModalOpen] = useState<boolean>(false);
+  const { user } = useUserStore();
 
-  const partner =
-    channel.channelType === ChannelType.DM
-      ? getDirectMessagePartner(channel, MY_USER_ID)
-      : null;
+  const partner = channel.channelType === ChannelType.DM ? getDirectMessagePartner(channel, user?.id ?? '') : null;
 
   return (
     <header className="border-b bg-background z-10">
@@ -49,20 +49,12 @@ export default function ChannelHeader({ channel }: { channel: Channel }) {
               {channel.description} ({channel.members.length} 人のメンバー)
             </p>
             <div className="ml-auto flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsInviteModalOpen(true)}
-              >
+              <Button variant="outline" size="sm" onClick={() => setIsInviteModalOpen(true)}>
                 <Users className="mr-2 h-4 w-4" />
                 メンバーを招待
               </Button>
 
-              <InviteMemberModal
-                isOpen={isInviteModalOpen}
-                onOpenChange={setIsInviteModalOpen}
-                channel={channel}
-              />
+              <InviteMemberModal isOpen={isInviteModalOpen} onOpenChange={setIsInviteModalOpen} channel={channel} />
             </div>
           </>
         )}

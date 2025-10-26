@@ -37,6 +37,7 @@ export default function WorkspaceLayout({
     isLoading: isUserLoading,
     error: userError,
     fetchCurrentUser,
+    fetchOtherUsers,
   } = useUserStore();
   // チャンネルストアから状態とアクションを取得 (同様)
   const {
@@ -51,12 +52,13 @@ export default function WorkspaceLayout({
   useEffect(() => {
     const initData = async () => {
       await fetchCurrentUser();
+      await fetchOtherUsers();
       await fetchChannels();
       setIsInitialized(true);
     };
 
     initData();
-  }, [fetchCurrentUser, fetchChannels]);
+  }, [fetchCurrentUser, fetchChannels, fetchOtherUsers]);
 
   if (!isInitialized || isUserLoading || isChannelLoading) return <Loading />;
   if (userError || channelError) return <Error />;
