@@ -19,7 +19,7 @@ import Loading from '@/app/loading';
 import Error from '@/app/error';
 // 型
 import { ChannelType } from '@/types/workspace';
-// データ（一時的にモックデータを使用）
+// データ
 import { channels } from '@/data/workspace';
 // ストア
 import { useUserStore } from '@/store/useUserStore';
@@ -44,18 +44,15 @@ export default function WorkspaceLayout({
     };
 
     initUser();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // 空の依存配列：マウント時のみ実行
+  }, [fetchCurrentUser]);
 
   if (!isInitialized || isLoading) return <Loading />;
   if (error) return <Error />;
   if (!user) return notFound();
 
-  // 現在のユーザーが参加しているチャンネルをフィルタリング
   const channelsWithMe = channels.filter((channel) =>
     channel.members.some((member) => member.id === user.id)
   );
-  
   const normalChannels = channelsWithMe.filter(
     (channel) => channel.channelType === ChannelType.CHANNEL
   );

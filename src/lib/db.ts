@@ -13,4 +13,9 @@ export const userOperations = {
   async getAllUsers() {
     return prisma.user.findMany();
   },
+
+  // 認証 ID からユーザーを取得
+  async getUserByAuthId(authId: string) {
+    return prisma.user.findUnique({ where: { authId } });
+  },
 };
