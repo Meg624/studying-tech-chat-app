@@ -3,7 +3,7 @@
 // React
 import { useState } from 'react';
 // アイコン
-import { Search, UserPlus } from 'lucide-react';
+import { Search, UserPlus, Loader2 } from 'lucide-react';
 // shadcn/ui
 import { Button } from '@/components/ui/button';
 import {
@@ -19,6 +19,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Checkbox } from '@/components/ui/checkbox';
 // ストア
 import { useUserStore } from '@/store/useUserStore';
+import { useChannelStore } from '@/store/useChannelStore';
 // 型
 import type { User, Channel } from '@/types/workspace';
 
@@ -36,8 +37,11 @@ export default function InviteMemberModal({
   const [searchQuery, setSearchQuery] = useState<string>('');
   // 選択中のユーザーは、チェックボックスで複数選択できるようにする
   const [selectedUsers, setSelectedUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const { user: currentUser, otherUsers } = useUserStore();
+  const { fetchChannels } = useChannelStore();
 
   // 自分以外のユーザーで、まだチャンネルに参加していないユーザーを取得
   const availableUsers = otherUsers.filter(
@@ -61,11 +65,40 @@ export default function InviteMemberModal({
     }
   };
 
-  const handleInvite = () => {
-    // 今は見た目だけの実装なので、実際の招待処理は行わない
-    onOpenChange(false);
-    setSelectedUsers([]);
-    setSearchQuery('');
+  const handleInvite = async () => {
+    if (selectedUsers.length === 0) return;
+
+    try {
+      setError(null);
+      setIsLoading(true);
+
+      // APIを呼び出してメンバーを追加
+      const res = await fetch(`/api/channels/${channel.id}/members`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userIds: selectedUsers.map((user) => user.id) }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'メンバーの追加に失敗しました');
+      }
+
+      // 成功したらチャンネルのストアを更新
+      await fetchChannels();
+      // モーダルを閉じる
+      onOpenChange(false);
+      // 選択をリセット
+      setSelectedUsers([]);
+      setSearchQuery('');
+    } catch (error) {
+      console.error('メンバー招待エラー:', error);
+      setError(
+        error instanceof Error ? error.message : 'メンバーの追加に失敗しました'
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -85,6 +118,8 @@ export default function InviteMemberModal({
               className="flex-1"
             />
           </div>
+
+          {error && <div className="text-sm text-destructive">{error}</div>}
 
           <ScrollArea className="h-72">
             <div className="space-y-1">
@@ -126,11 +161,12 @@ export default function InviteMemberModal({
           </p>
           <Button
             onClick={handleInvite}
-            disabled={selectedUsers.length === 0}
+            disabled={selectedUsers.length === 0 || isLoading}
             className="gap-2"
           >
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
             <UserPlus className="h-4 w-4" />
-            招待する
+            {isLoading ? '招待中...' : '招待する'}
           </Button>
         </DialogFooter>
       </DialogContent>

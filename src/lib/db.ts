@@ -109,6 +109,36 @@ export const channelOperations = {
       })),
     };
   },
+
+  // チャンネルにメンバーを追加
+  async addMembersToChannel(
+    channelId: string,
+    userIds: string[]
+  ): Promise<Channel> {
+    // 既存のチャンネルに複数のメンバーを追加
+    const channel = await prisma.channel.update({
+      where: { id: channelId },
+      data: {
+        members: {
+          create: userIds.map((userId) => ({
+            user: { connect: { id: userId } },
+          })),
+        },
+      },
+      include: { members: { include: { user: true } } },
+    });
+
+    return {
+      id: channel.id,
+      name: channel.name ?? '',
+      description: channel.description ?? '',
+      channelType: channel.type as ChannelType,
+      members: channel.members.map((member) => ({
+        id: member.user.id,
+        name: member.user.name,
+      })),
+    };
+  },
 };
 
 /**
