@@ -134,4 +134,28 @@ export const messageOperations = {
       channelId: message.channel.id,
     }));
   },
+
+  // メッセージを投稿
+  async createMessage(
+    channelId: string,
+    senderId: string,
+    content: string
+  ): Promise<Message> {
+    const message = await prisma.message.create({
+      data: {
+        content,
+        channel: { connect: { id: channelId } },
+        sender: { connect: { id: senderId } },
+      },
+      include: { sender: true, channel: true },
+    });
+
+    return {
+      id: message.id,
+      content: message.content,
+      createdAt: message.createdAt,
+      sender: { id: message.sender.id, name: message.sender.name },
+      channelId: message.channel.id,
+    };
+  },
 };

@@ -1,71 +1,72 @@
 'use client';
 
 // React
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 // Next.js
 import { useParams, notFound } from 'next/navigation';
 // 自作コンポーネント
 import ChannelHeader from '@/components/channel/channelHeader';
 import MessageView from '@/components/channel/messageView';
 import MessageForm from '@/components/channel/messageForm';
-// データ
-import {
-  getChannel,
-  getDirectMessagePartner,
-  getUser,
-  MY_USER_ID,
-} from '@/data/workspace';
+import Loading from '@/app/loading';
 // 型
-import { ChannelType, Message, Channel } from '@/types/workspace';
-// Zustand ストア
+import { ChannelType } from '@/types/workspace';
+// ストア
+import { useUserStore } from '@/store/useUserStore';
+import { useChannelStore } from '@/store/useChannelStore';
 import { useMessageStore } from '@/store/useMessageStore';
+// データ
+import { getDirectMessagePartner } from '@/lib/db';
 
 export default function ChannelPage() {
   // URL のパスからチャンネル ID を取得
   const { channelId } = useParams<{ channelId: string }>();
-  const channelIdNumber = parseInt(channelId, 10);
-  let channel: Channel | null = null;
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Zustand ストアからメッセージとアクションを取得
-  const { messages, fetchMessages, addMessage } = useMessageStore();
+  // ストアから、ユーザーとチャンネルとメッセージの状態とアクションを取得
+  const { user } = useUserStore();
+  const { channels } = useChannelStore();
+  const {
+    messages,
+    isLoading: isMessageLoading,
+    fetchMessages,
+    addMessage,
+  } = useMessageStore();
 
-  // getChannel はチャンネルが見つからなかった場合に error を throw する。
-  // そのため、エラーが起こっても処理を止めないように try-catch で囲む
-  try {
-    channel = getChannel(channelIdNumber);
-  } catch (error) {
-    console.error(error);
-  }
-
+  // チャンネル ID が変更されたときにチャンネル情報とメッセージを取得
   useEffect(() => {
-    // チャンネル ID が変更されたときにメッセージを取得
-    fetchMessages(channelIdNumber);
-  }, [channelIdNumber, fetchMessages]);
-
-  if (!channel) return notFound();
-
-  const channelDisplayName =
-    channel.channelType === ChannelType.CHANNEL
-      ? `# ${channel.name}`
-      : getDirectMessagePartner(channel, MY_USER_ID).name;
-
-  const handleSendMessage = (content: string) => {
-    const newMessage: Message = {
-      id: messages.length + 1,
-      channel: channel,
-      sender: getUser(MY_USER_ID),
-      content: content,
-      createdAt: new Date(),
+    const initData = async () => {
+      await fetchMessages(channelId);
+      setIsInitialized(true);
     };
 
-    // Zustand ストアにメッセージを追加
-    addMessage(newMessage);
+    initData();
+  }, [channelId, fetchMessages]);
+
+  // ローディング中の表示
+  if (!isInitialized || isMessageLoading) return <Loading />;
+
+  // チャンネルが見つからない場合
+  const currentChannel = channels.find((channel) => channel.id === channelId);
+  if (!currentChannel) return notFound();
+
+  const channelDisplayName =
+    currentChannel.channelType === ChannelType.CHANNEL
+      ? `# ${currentChannel.name}`
+      : getDirectMessagePartner(currentChannel, user?.id ?? '').name;
+
+  const handleSendMessage = async (content: string) => {
+    try {
+      await addMessage(channelId, content);
+    } catch (error) {
+      console.error('メッセージの送信に失敗しました:', error);
+    }
   };
 
   return (
     <div className="flex flex-col h-full">
-      <ChannelHeader channel={channel} />
-      <MessageView messages={messages} myUserId={MY_USER_ID} />
+      <ChannelHeader channel={currentChannel} />
+      <MessageView messages={messages} myUserId={user?.id ?? ''} />
       <MessageForm
         channelDisplayName={channelDisplayName}
         handleSendMessage={handleSendMessage}

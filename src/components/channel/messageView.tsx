@@ -7,7 +7,7 @@ export default function MessageView({
   myUserId,
 }: {
   messages: Message[];
-  myUserId: number;
+  myUserId: string;
 }) {
   // アロー関数で、メッセージが自分のものかどうかを判断する処理を定義
   const isMyMessage = (message: Message) => message.sender.id === myUserId;
@@ -34,7 +34,11 @@ export default function MessageView({
                   <span className="font-semibold">{message.sender.name}</span>
                 )}
                 <span className="text-xs text-muted-foreground">
-                  {message.createdAt.toLocaleString()}
+                  {typeof message.createdAt === 'string'
+                    ? new Date(message.createdAt).toLocaleString('ja-JP')
+                    : message.createdAt instanceof Date
+                      ? message.createdAt.toLocaleString('ja-JP')
+                      : ''}
                 </span>
                 {isMyMessage(message) && (
                   <span className="font-semibold">自分</span>

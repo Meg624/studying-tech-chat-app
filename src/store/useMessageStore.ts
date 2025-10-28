@@ -10,9 +10,9 @@ interface MessageState {
   // エラー情報
   error: string | null;
   // 特定チャンネルのメッセージを取得する Action
-  fetchMessages: (channelId: string) => void;
+  fetchMessages: (channelId: string) => Promise<void>;
   // 新しいメッセージを追加する Action
-  addMessage: (message: Message) => void;
+  addMessage: (channelId: string, content: string) => Promise<void>;
   // メッセージをクリアする Action
   clearMessages: () => void;
 }
@@ -50,9 +50,35 @@ export const useMessageStore = create<MessageState>((set) => ({
     }
   },
 
-  addMessage: (message: Message) => {
-    // 現在のメッセージ配列に新しいメッセージを追加
-    set((state) => ({ messages: [...state.messages, message] }));
+  addMessage: async (channelId: string, content: string) => {
+    try {
+      // API を呼び出し、メッセージを保存
+      const res = await fetch(`/api/messages/channel/${channelId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || 'メッセージの送信に失敗しました');
+      }
+
+      const newMessage = await res.json();
+
+      // 現在のメッセージ配列に新しいメッセージを追加
+      set((state) => ({ messages: [...state.messages, newMessage] }));
+    } catch (error) {
+      console.error('メッセージの送信に失敗しました:', error);
+      set({
+        error:
+          error instanceof Error
+            ? error.message
+            : 'メッセージの送信に失敗しました',
+        isLoading: false,
+      });
+      throw error;
+    }
   },
 
   clearMessages: () => {
