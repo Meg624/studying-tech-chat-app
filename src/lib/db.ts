@@ -23,6 +23,11 @@ export const userOperations = {
   async getUserByAuthId(authId: string): Promise<User | null> {
     return prisma.user.findUnique({ where: { authId } });
   },
+
+  // ユーザー名を更新
+  async updateUserName(userId: string, name: string): Promise<User> {
+    return prisma.user.update({ where: { id: userId }, data: { name } });
+  },
 };
 
 /**

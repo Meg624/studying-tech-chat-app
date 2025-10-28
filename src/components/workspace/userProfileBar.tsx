@@ -45,7 +45,7 @@ export default function UserProfileBar({ user }: { user: User }) {
   const [logoutOpen, setLogoutOpen] = useState<boolean>(false);
   const [userName, setUserName] = useState<string>(user.name);
   const { theme, setTheme } = useTheme();
-  const { clearUser, clearOtherUsers } = useUserStore();
+  const { clearUser, clearOtherUsers, updateUserName } = useUserStore();
   const { clearChannels } = useChannelStore();
   const { clearMessages } = useMessageStore();
 
@@ -66,6 +66,16 @@ export default function UserProfileBar({ user }: { user: User }) {
       await logout();
     } catch (error) {
       console.error('ログアウトエラー:', error);
+    }
+  };
+
+  // ユーザープロフィールの更新処理
+  const handleSaveSettings = async () => {
+    try {
+      await updateUserName(userName);
+      setSettingsOpen(false);
+    } catch (error) {
+      console.error('プロフィール更新エラー:', error);
     }
   };
 
@@ -113,7 +123,7 @@ export default function UserProfileBar({ user }: { user: User }) {
             </div>
           </div>
           <DialogFooter>
-            <Button onClick={() => setSettingsOpen(false)}>保存</Button>
+            <Button onClick={handleSaveSettings}>保存</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
