@@ -3,82 +3,62 @@
 // React
 import { useState } from 'react';
 // アイコン
-import { Check, Search, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 // shadcn/ui
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Textarea } from '@/components/ui/textarea';
 // ストア
-import { useUserStore } from '@/store/useUserStore';
 import { useChannelStore } from '@/store/useChannelStore';
-// 型
-import type { User } from '@/types/workspace';
 
-export default function CreateDirectMessageModal({
+export default function CreateChannelModal({
   isOpen,
   onOpenChange,
 }: {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  // 検索クエリ
-  const [searchQuery, setSearchQuery] = useState<string>('');
-  // 選択中のユーザー
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [channelName, setChannelName] = useState<string>('');
+  const [channelDescription, setChannelDescription] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const fetchChannels = useChannelStore((state) => state.fetchChannels);
 
-  const { user: currentUser, otherUsers } = useUserStore();
-  const { channels, fetchChannels } = useChannelStore();
-
-  // DM チャンネルの相手ユーザー ID のリストを作成
-  const existingDmPartnerIds = currentUser
-    ? channels
-        .filter((channel) => channel.channelType === 'dm')
-        .flatMap((channel) =>
-          channel.members.filter((member) => member.id !== currentUser.id).map((member) => member.id)
-        )
-    : [];
-
-  // まだ DM を開始していないユーザーのみをフィルタリング
-  const availableUsers = otherUsers.filter((user) => !existingDmPartnerIds.includes(user.id));
-
-  // 検索クエリに基づいてユーザーをフィルタリング
-  const filteredUsers = availableUsers.filter(
-    (user) => searchQuery === '' || user.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleStartDm = async () => {
-    if (!selectedUser) return;
-
+  const handleCreateChannel = async () => {
     try {
-      setError(null);
       setIsLoading(true);
 
-      // API を呼び出して DM チャンネルを作成
-      const res = await fetch('/api/direct-messages', {
+      // API を呼び出してチャンネルを作成
+      const res = await fetch('/api/channels', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: selectedUser.id }),
+        body: JSON.stringify({
+          name: channelName,
+          description: channelDescription,
+        }),
       });
 
       if (!res.ok) {
         const errorData = await res.json();
-        throw new Error(errorData.message || errorData.error || 'DM の開始に失敗しました');
+        throw new Error(errorData.message || 'チャンネルの作成に失敗しました');
       }
 
-      // 成功したらチャンネル一覧を更新
+      // チャンネル一覧を再読込
       await fetchChannels();
       // モーダルを閉じる
       onOpenChange(false);
-      // 選択をリセット
-      setSelectedUser(null);
-      setSearchQuery('');
+      // チャンネル作成フォームをクリア
+      setChannelName('');
+      setChannelDescription('');
     } catch (error) {
-      console.error('DM 開始エラー:', error);
-      setError(error instanceof Error ? error.message : 'DM の開始に失敗しました');
+      console.error('チャンネル作成エラー:', error);
     } finally {
       setIsLoading(false);
     }
@@ -86,59 +66,40 @@ export default function CreateDirectMessageModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent>
         <DialogHeader>
-          <DialogTitle>新規ダイレクトメッセージ</DialogTitle>
+          <DialogTitle>新規チャンネル作成</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          <div className="flex items-center space-x-2">
-            <Search className="h-4 w-4 text-muted-foreground" />
+          <div className="space-y-2">
+            <Label htmlFor="channel-name">チャンネル名</Label>
             <Input
-              placeholder="ユーザーを検索..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1"
+              id="channel-name"
+              placeholder="チャンネル名を入力してください"
+              value={channelName}
+              onChange={(e) => setChannelName(e.target.value)}
             />
           </div>
 
-          {error && <div className="text-sm text-destructive">{error}</div>}
-
-          <ScrollArea className="h-72">
-            <div className="space-y-1">
-              {filteredUsers.length > 0 ? (
-                filteredUsers.map((user) => (
-                  <div
-                    key={user.id}
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 cursor-pointer ${
-                      selectedUser?.id === user.id ? 'bg-primary/10' : 'hover:bg-muted'
-                    }`}
-                    onClick={() => setSelectedUser(user)}
-                  >
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 overflow-hidden">
-                      <p className="text-sm font-medium">{user.name}</p>
-                    </div>
-                    {selectedUser?.id === user.id && <Check className="h-4 w-4 text-primary" />}
-                  </div>
-                ))
-              ) : (
-                <div className="py-6 text-center text-sm text-muted-foreground">
-                  {availableUsers.length === 0
-                    ? 'すべてのユーザーと既に DM を開始しています'
-                    : '該当するユーザーが見つかりませんでした'}
-                </div>
-              )}
-            </div>
-          </ScrollArea>
+          <div className="space-y-2">
+            <Label htmlFor="channel-description">説明（任意）</Label>
+            <Textarea
+              id="channel-description"
+              placeholder="このチャンネルの目的を説明してください"
+              value={channelDescription}
+              onChange={(e) => setChannelDescription(e.target.value)}
+            />
+          </div>
         </div>
 
         <DialogFooter>
-          <Button onClick={handleStartDm} disabled={!selectedUser || isLoading} className="gap-2">
-            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-            {isLoading ? 'DM を開始中...' : 'DM を開始'}
+          <Button
+            onClick={handleCreateChannel}
+            disabled={!channelName.trim() || isLoading}
+          >
+            {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {isLoading ? '作成中...' : '作成'}
           </Button>
         </DialogFooter>
       </DialogContent>

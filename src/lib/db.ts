@@ -80,6 +80,35 @@ export const channelOperations = {
         };
       });
   },
+
+  // チャンネルを作成
+  async createChannel(
+    name: string,
+    description: string,
+    creatorId: string
+  ): Promise<Channel> {
+    const channel = await prisma.channel.create({
+      data: {
+        name,
+        description,
+        type: 'channel',
+        // ChannelMember テーブルに、作成者 (自分) をメンバーとして追加する
+        members: { create: { user: { connect: { id: creatorId } } } },
+      },
+      include: { members: { include: { user: true } } },
+    });
+
+    return {
+      id: channel.id,
+      name: channel.name ?? '',
+      description: channel.description ?? '',
+      channelType: channel.type as ChannelType,
+      members: channel.members.map((member) => ({
+        id: member.user.id,
+        name: member.user.name,
+      })),
+    };
+  },
 };
 
 /**
