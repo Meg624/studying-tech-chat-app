@@ -139,6 +139,65 @@ export const channelOperations = {
       })),
     };
   },
+
+  // ダイレクトメッセージ用チャンネルを作成
+  async createDirectMessage(
+    userOneId: string,
+    userTwoId: string
+  ): Promise<Channel> {
+    // 既存の DM チャンネルを検索 （両ユーザーがともにメンバーである DM チャンネル）
+    const existingChannels = await prisma.channel.findMany({
+      where: {
+        type: 'dm',
+        AND: [
+          { members: { some: { userId: userOneId } } },
+          { members: { some: { userId: userTwoId } } },
+        ],
+      },
+      include: { members: { include: { user: true } } },
+    });
+
+    // 既存の DM チャンネルが見つかった場合はそれを返す
+    if (existingChannels.length > 0) {
+      const channel = existingChannels[0];
+      return {
+        id: channel.id,
+        name: channel.name ?? '',
+        description: channel.description ?? '',
+        channelType: channel.type as ChannelType,
+        members: channel.members.map((member) => ({
+          id: member.user.id,
+          name: member.user.name,
+        })),
+      };
+    }
+
+    // 新しい DM チャンネルを作成
+    const channel = await prisma.channel.create({
+      data: {
+        type: 'dm',
+        // 両ユーザーをメンバーとして追加
+        members: {
+          create: [
+            { user: { connect: { id: userOneId } } },
+            { user: { connect: { id: userTwoId } } },
+          ],
+        },
+      },
+      include: { members: { include: { user: true } } },
+    });
+
+    return {
+      id: channel.id,
+      name: channel.name ?? '',
+      description: channel.description ?? '',
+      channelType: channel.type as ChannelType,
+      members: channel.members.map((member) => ({
+        id: member.user.id,
+        name: member.user.name,
+      })),
+    };
+  },
 };
 
 /**
