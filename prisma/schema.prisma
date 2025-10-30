@@ -58,3 +58,14 @@ model Message {
   channel   Channel @relation(fields: [channelId], references: [id], onDelete: Cascade)
   channelId String
 }
+
+// AI チャットモデル
+model AiChat {
+  id        String   @id @default(cuid())
+  userId    String
+  // ユーザーのメッセージ
+  message   String
+  // AI の応答
+  response  String
+  createdAt DateTime @default(now())
+}
