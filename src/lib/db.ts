@@ -1,6 +1,6 @@
 import { prisma } from '@/lib/prisma';
 // 型
-import { User, ChannelType, Channel, Message } from '@/types/workspace';
+import { User, ChannelType, Channel, Message, AiChatRecord } from '@/types/workspace';
 
 /**
  * ユーザー関連の操作
@@ -275,5 +275,41 @@ export const messageOperations = {
       sender: { id: message.sender.id, name: message.sender.name },
       channelId: message.channel.id,
     };
+  },
+};
+/**
+ * AI チャット関連の操作
+ */
+export const aiChatOperations = {
+  /**
+   * AI チャットの新しい会話を保存する
+   * @param userId ユーザー ID
+   * @param message ユーザーのメッセージ
+   * @param response AI の応答
+   * @returns 保存されたレコード
+   */
+  async saveConversation(
+    userId: string,
+    message: string,
+    response: string
+  ): Promise<AiChatRecord> {
+    return prisma.aiChat.create({ data: { userId, message, response } });
+  },
+
+  /**
+   * ユーザーの会話履歴を取得する
+   * @param userId ユーザーID
+   * @param limit 取得する最大件数 (デフォルト: 50)
+   * @returns 会話履歴
+   */
+  async getConversationHistory(
+    userId: string,
+    limit: number = 50
+  ): Promise<AiChatRecord[]> {
+    return prisma.aiChat.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
   },
 };
