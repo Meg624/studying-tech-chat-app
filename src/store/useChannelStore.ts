@@ -21,6 +21,7 @@ interface ChannelState {
 export const useChannelStore = create<ChannelState>((set) => ({
   // 初期 State
   channels: [],
+  currentChannel: null,
   isLoading: false,
   error: null,
 
