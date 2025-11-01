@@ -10,12 +10,27 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 // 型
 import { AiChatRole, AiChatMessage, AiChatRecord } from '@/types/workspace';
+// データ
+import { AI_CHAT_DAILY_USAGE_LIMIT } from '@/lib/db';
 
 export default function WorkspaceAIChatPage() {
   const [message, setMessage] = useState<string>('');
   const [chatHistory, setChatHistory] = useState<AiChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [remainingUsage, setRemainingUsage] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // 残り使用回数を取得
+  const fetchRemainingUsage = async () => {
+    try {
+      const res = await fetch('/api/ai-chat/remaining');
+      const data = await res.json();
+
+      if (res.ok) setRemainingUsage(data.remaining);
+    } catch (error) {
+      console.error('残り回数の取得に失敗しました:', error);
+    }
+  };
 
   // 会話履歴を取得
   const fetchChatHistory = async () => {
@@ -37,6 +52,7 @@ export default function WorkspaceAIChatPage() {
   };
 
   useEffect(() => {
+    fetchRemainingUsage();
     fetchChatHistory();
   }, []);
 
@@ -66,6 +82,10 @@ export default function WorkspaceAIChatPage() {
           ...prev,
           { role: AiChatRole.ASSISTANT, content: data.response },
         ]);
+
+        // 残り使用回数を更新
+        if (data.remainingToday !== undefined)
+          setRemainingUsage(data.remainingToday);
       } else {
         setError(data.error || 'エラーが発生しました');
       }
@@ -83,6 +103,13 @@ export default function WorkspaceAIChatPage() {
       {/* ヘッダー */}
       <header className="flex items-center px-6 py-3 h-14 border-b">
         <h1 className="text-xl font-semibold">AI チャット</h1>
+        {remainingUsage !== null && (
+          <div className="ml-4 text-sm text-muted-foreground">
+            本日の残り利用回数:{' '}
+            <span className="font-medium">{remainingUsage}</span> /{' '}
+            {AI_CHAT_DAILY_USAGE_LIMIT}
+          </div>
+        )}
       </header>
 
       {/* メインコンテンツ */}

@@ -282,7 +282,33 @@ export const messageOperations = {
 /**
  * AI チャット関連の操作
  */
+// 1 日の最大使用回数
+export const AI_CHAT_DAILY_USAGE_LIMIT = 3;
+
+/**
+ * AI チャット関連の操作
+ */
 export const aiChatOperations = {
+  // 今日の AI チャット使用回数を確認する
+  async getTodayUsageCount(userId: string): Promise<number> {
+    // 今日の 0 時 0 分 0 秒に設定
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 該当のユーザー ID の、今日以降に作成されたデータを取得
+    return prisma.aiChat.count({
+      where: { userId, createdAt: { gte: today } },
+    });
+  },
+
+  // 残りの使用可能回数を計算する
+  async getRemainingUsage(userId: string): Promise<number> {
+    const usageCount = await this.getTodayUsageCount(userId);
+
+    // 1 日の最大使用回数から現在の使用回数を引いて、残り回数を計算
+    return Math.max(0, AI_CHAT_DAILY_USAGE_LIMIT - usageCount);
+  },
+
   /**
    * AI チャットの新しい会話を保存する
    * @param userId ユーザー ID
@@ -313,5 +339,16 @@ export const aiChatOperations = {
       orderBy: { createdAt: 'desc' },
       take: limit,
     });
+  },
+
+  /**
+   * 使用制限をチェックする （1 日の使用回数が上限を超えているかどうか）
+   * @param userId ユーザー ID
+   * @returns 制限を超えているかどうか
+   */
+  async isLimitExceeded(userId: string): Promise<boolean> {
+    const usageCount = await this.getTodayUsageCount(userId);
+
+    return usageCount >= AI_CHAT_DAILY_USAGE_LIMIT;
   },
 };
