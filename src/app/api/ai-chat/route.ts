@@ -33,4 +33,4 @@ export const POST = withAuth(async (request: NextRequest, _, user: User) => {
       { status: 500 }
     );
   }
-});
+  });

@@ -34,6 +34,7 @@ export interface Message {
   content: string;
   createdAt: Date;
 }
+
 export enum AiChatRole {
   USER = 'user',
   ASSISTANT = 'assistant',
