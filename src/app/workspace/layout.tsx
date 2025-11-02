@@ -32,7 +32,7 @@ export default function WorkspaceLayout({
   const pathname = usePathname();
   const [open, setOpen] = useState<boolean>(false);
 
-  // ユーザーストアから状態とアクションを取得 (isLoading などは、名前が被らないように名前付きで取得)
+  // ユーザーストアから状態とアクションを取得
   const {
     user,
     isLoading: isUserLoading,
@@ -40,7 +40,7 @@ export default function WorkspaceLayout({
     fetchCurrentUser,
     fetchOtherUsers,
   } = useUserStore();
-  // チャンネルストアから状態とアクションを取得 (同様)
+  // チャンネルストアから状態とアクションを取得
   const {
     channels,
     isLoading: isChannelLoading,
@@ -59,7 +59,8 @@ export default function WorkspaceLayout({
     };
 
     initData();
-  }, [fetchCurrentUser, fetchChannels, fetchOtherUsers]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // 空の依存配列 - マウント時のみ実行
 
   if (!isInitialized || isUserLoading || isChannelLoading) return <Loading />;
   if (userError || channelError) return <Error />;
