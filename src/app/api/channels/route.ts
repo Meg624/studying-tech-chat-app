@@ -4,6 +4,9 @@ import { channelOperations } from '@/lib/db';
 import { User } from '@/types/workspace';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
+
 /**
  * [GET] /api/channels: 現在認証されているユーザーが参加しているチャンネルを取得
  */

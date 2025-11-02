@@ -3,6 +3,9 @@ import { withAuth } from '@/utils/auth';
 import { User } from '@/types/workspace';
 import { aiChatOperations } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
+
 /**
  * [GET] /api/ai-chat/history: 現在認証されているユーザーの会話履歴を取得
  */

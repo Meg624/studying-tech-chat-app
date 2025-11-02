@@ -4,6 +4,9 @@ import { User } from '@/types/workspace';
 import { userOperations } from '@/lib/db';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
+
 /**
  * [GET] /api/users/me: 現在認証されているユーザーの情報を取得
  */

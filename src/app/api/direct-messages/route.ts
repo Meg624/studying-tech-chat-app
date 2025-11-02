@@ -4,6 +4,9 @@ import { channelOperations } from '@/lib/db';
 import { User } from '@/types/workspace';
 import { z } from 'zod';
 
+export const dynamic = 'force-dynamic';
+
+
 // ダイレクトメッセージ作成のためのバリデーションスキーマ
 const createDmSchema = z.object({
   userId: z

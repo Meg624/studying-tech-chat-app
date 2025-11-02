@@ -2,6 +2,9 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
 import { userOperations } from '@/lib/db';
 
+export const dynamic = 'force-dynamic';
+
+
 /**
  * [GET] /api/users/me: 現在認証されているユーザーの情報を取得
  */
