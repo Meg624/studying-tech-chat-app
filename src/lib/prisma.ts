@@ -1,29 +1,35 @@
+// lib/prisma.ts
 import { PrismaClient } from '@prisma/client';
 
 /**
- * グローバルオブジェクトに PrismaClient のインスタンスを保存するための型定義
- *
- * TypeScript のグローバル型を拡張して、 prisma プロパティを持つようにキャストします。
- * グローバルオブジェクトは、 Next.js のコンテキストでは常に存在するオブジェクトです。
- * これにより、グローバルオブジェクトに PrismaClient のインスタンスを保存することができます。
+ * PrismaClient のインスタンスをグローバルオブジェクトに保持するための型定義。
+ * Next.js（特に開発環境）ではモジュールのホットリロードが発生するため、
+ * 何度も新しい PrismaClient が生成されると DB 接続が増えすぎてしまう問題を防ぐ目的です。
  */
-const globalForPrisma = global as unknown as {
+const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
 /**
- * PrismaClient のシングルトンインスタンス
- *
- * グローバルオブジェクトに既存のインスタンスがあればそれを使用し、なければ新しいインスタンスを作成します。
- * これにより、アプリケーション全体で単一のデータベース接続を共有できます。
- * シングルトンパターンとは、同じクラスのインスタンスが 1 つしか存在しないことを保証するデザインパターンです。
+ * PrismaClient のシングルトンインスタンスを生成または再利用します。
+ * 
+ * - すでにグローバルに存在すればそれを再利用
+ * - 存在しなければ新たに生成
+ * 
+ * `log` オプションでは Prisma のログレベルを設定できます。
  */
-export const prisma = globalForPrisma.prisma ?? new PrismaClient();
+export const prisma =
+  globalForPrisma.prisma ??
+  new PrismaClient({
+    log: ['error', 'warn'], // 本番では 'query' を省くのが推奨
+  });
 
 /**
- * 開発環境でのインスタンス管理
+ * 開発環境でのみ、生成した PrismaClient インスタンスを
+ * グローバルオブジェクトにキャッシュしておきます。
  *
- * 開発環境では、ホットリロードによってインスタンスが複数作成されることを防ぐため、作成したインスタンスをグローバルオブジェクトに保存します。
- * 本番環境ではこの処理は不要です。そのため、条件分岐で制御しています。
+ * これにより、Next.js のホットリロード時に新しい接続が増えることを防ぎます。
  */
-if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== 'production') {
+  globalForPrisma.prisma = prisma;
+}
