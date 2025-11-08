@@ -13,30 +13,19 @@ export async function getAuthenticatedUser(): Promise<User | NextResponse> {
     // Supabase Auth から、認証されているユーザーの情報を取得
     const supabase = await createClient();
     const { data, error } = await supabase.auth.getUser();
-    if (error || !data?.user)
-      return NextResponse.json(
-        { error: '認証されていません' },
-        { status: 401 }
-      );
+    if (error || !data?.user) return NextResponse.json({ error: '認証されていません' }, { status: 401 });
 
     const authUser = data.user;
 
     // Prisma データベースから、認証 ID に紐づくユーザー情報を取得
     const user = await userOperations.getUserByAuthId(authUser.id);
-    if (!user)
-      return NextResponse.json(
-        { error: 'ユーザーが見つかりません' },
-        { status: 404 }
-      );
+    if (!user) return NextResponse.json({ error: 'ユーザーが見つかりません' }, { status: 404 });
 
     return user;
   } catch (error) {
     console.error('認証処理でエラーが発生しました:', error);
 
-    return NextResponse.json(
-      { error: '認証処理でエラーが発生しました' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: '認証処理でエラーが発生しました' }, { status: 500 });
   }
 }
 
@@ -52,11 +41,7 @@ export async function getAuthenticatedUser(): Promise<User | NextResponse> {
  * @returns ラップされたハンドラ関数
  */
 export function withAuth<T extends Record<string, unknown>>(
-  handler: (
-    request: NextRequest,
-    context: T,
-    user: User
-  ) => Promise<NextResponse>
+  handler: (request: NextRequest, context: T, user: User) => Promise<NextResponse>
 ) {
   return async (request: NextRequest, context: T) => {
     const result = await getAuthenticatedUser();

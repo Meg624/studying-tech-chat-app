@@ -33,8 +33,8 @@ import {
 } from '@/components/ui/alert-dialog';
 // 型
 import type { User } from '@/types/workspace';
-// サーバーアクション
-import { logout } from '@/app/logout/actions';
+// Supabase
+import { createClient } from '@/utils/supabase/client';
 // ストア
 import { useUserStore } from '@/store/useUserStore';
 import { useChannelStore } from '@/store/useChannelStore';
@@ -62,10 +62,23 @@ export default function UserProfileBar({ user }: { user: User }) {
       clearOtherUsers();
       clearChannels();
       clearMessages();
-      // サーバー側でのログアウト処理
-      await logout();
+      
+      // Supabaseからログアウト
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      
+      // ローカルストレージとセッションストレージをクリア
+      if (typeof window !== 'undefined') {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+      
+      // ログインページに強制リダイレクト
+      window.location.href = '/login';
     } catch (error) {
       console.error('ログアウトエラー:', error);
+      // エラーが出てもリダイレクト
+      window.location.href = '/login';
     }
   };
 
