@@ -8,6 +8,22 @@ import { Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
+// 🟡 絵文字変換関数を追加
+function convertEmoji(text: string) {
+  const emojiMap: Record<string, string> = {
+    ':smile:': '😄',
+    ':heart:': '❤️',
+    ':thumbsup:': '👍',
+    ':laughing:': '😂',
+    ':cry:': '😢',
+    ':fire:': '🔥',
+    ':star:': '⭐',
+    ':ok:': '👌',
+    ':wave:': '👋',
+  };
+  return text.replace(/:[a-z_]+:/g, (match) => emojiMap[match] || match);
+}
+
 export default function MessageForm({
   channelDisplayName,
   handleSendMessage,
@@ -23,7 +39,10 @@ export default function MessageForm({
     // メッセージが空の場合は送信しない (ここでもバリデーションをかける)
     if (!content.trim()) return;
     // メッセージを送信する (この処理は、親コンポーネントから渡された関数)
-    handleSendMessage(content);
+      // 🟢 入力内容を送信前に絵文字変換！
+    const converted = convertEmoji(content);
+
+    handleSendMessage(converted);
     // メッセージ, input の内容をリセットする
     setContent('');
   };

@@ -13,6 +13,7 @@ interface MessageState {
   fetchMessages: (channelId: string) => Promise<void>;
   // 新しいメッセージを追加する Action
   addMessage: (channelId: string, content: string) => Promise<void>;
+  updateMessage: (messageId: string, content: string) => Promise<void>;
   // メッセージをクリアする Action
   clearMessages: () => void;
 }
@@ -80,6 +81,40 @@ export const useMessageStore = create<MessageState>((set) => ({
       throw error;
     }
   },
+
+  // メッセージを更新する Action
+updateMessage: async (messageId: string, content: string) => {
+  try {
+    const res = await fetch(`/api/messages/${messageId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ content }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || 'メッセージの更新に失敗しました');
+    }
+
+    const updatedMessage = await res.json();
+
+    // ストア内の messages を更新
+    set((state) => ({
+      messages: state.messages.map((m) =>
+        m.id === messageId ? updatedMessage : m
+      ),
+    }));
+  } catch (error) {
+    console.error('メッセージ更新エラー:', error);
+    set({
+      error:
+        error instanceof Error
+          ? error.message
+          : 'メッセージの更新に失敗しました',
+    });
+    throw error;
+  }
+},
 
   clearMessages: () => {
     set({ messages: [] });

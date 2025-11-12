@@ -26,11 +26,14 @@ export default function ChannelPage() {
 
   const { user } = useUserStore();
   const { channels } = useChannelStore();
+
+  // ✅ updateMessage を追加！
   const {
     messages,
     isLoading: isMessageLoading,
     fetchMessages,
     addMessage,
+    updateMessage, // ← ここを追加
   } = useMessageStore();
 
   // ✅ チャンネルID変更時にメッセージ取得
@@ -42,7 +45,7 @@ export default function ChannelPage() {
     initData();
   }, [channelId, fetchMessages]);
 
-  // ✅ 検索語にマッチするメッセージを抽出（useMemoはuseEffectの外でOK）
+  // ✅ 検索語にマッチするメッセージを抽出
   const filteredMessages = useMemo(() => {
     if (!messages) return [];
     if (!searchTerm) return messages;
@@ -63,11 +66,24 @@ export default function ChannelPage() {
       ? `# ${currentChannel.name}`
       : getDirectMessagePartner(currentChannel, user?.id ?? '').name;
 
+  // ✅ メッセージ送信処理
   const handleSendMessage = async (content: string) => {
     try {
       await addMessage(channelId, content);
     } catch (error) {
       console.error('メッセージ送信失敗:', error);
+    }
+  };
+
+  // ✅ メッセージ編集処理（新規追加）
+  const handleMessageUpdate = async (messageId: string, newContent: string) => {
+    try {
+      await updateMessage(messageId, newContent);
+      await fetchMessages(channelId); // メッセージ一覧を再取得して最新化
+      alert('メッセージを更新しました');
+    } catch (error) {
+      console.error('編集エラー:', error);
+      alert('編集に失敗しました');
     }
   };
 
@@ -88,7 +104,26 @@ export default function ChannelPage() {
       </div>
 
       {/* 検索結果を表示 */}
-      <MessageView messages={filteredMessages} myUserId={user?.id ?? ''} />
+      <MessageView
+        messages={filteredMessages}
+        myUserId={user?.id ?? ''}
+        onMessageUpdate={handleMessageUpdate} // ← ここを追加
+        onMessageDelete={async (messageId) => {
+      try {
+      // Supabase 認証済みであれば削除API呼び出し
+      const res = await fetch(`/api/messages/${messageId}`, {
+        method: 'DELETE',
+      });
+      if (!res.ok) throw new Error('削除に失敗しました');
+      alert('メッセージを削除しました');
+      // ✅ ローカル状態更新（useMessageStore 側でも削除更新）
+      await fetchMessages(channelId);
+    } catch (error) {
+      console.error('削除エラー:', error);
+      alert('削除に失敗しました');
+    }
+  }}
+      />
 
       {/* 検索結果が0件のとき */}
       {filteredMessages.length === 0 && searchTerm && (

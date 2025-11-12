@@ -32,7 +32,8 @@ export interface Message {
   channelId: string;
   sender: User;
   content: string;
-  createdAt: Date;
+  createdAt: string;
+  updatedAt?: string;
 }
 
 export enum AiChatRole {
@@ -50,5 +51,5 @@ export interface AiChatRecord {
   userId: string;
   message: string;
   response: string;
-  createdAt: Date;
+  createdAt: string;
 }
