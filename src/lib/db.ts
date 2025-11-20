@@ -230,7 +230,7 @@ export const messageOperations = {
     return messages.map((message) => ({
       id: message.id,
       content: message.content,
-      createdAt: message.createdAt,
+      createdAt: message.createdAt.toISOString() ,
       sender: { id: message.sender.id, name: message.sender.name },
       channelId: message.channel.id,
     }));
