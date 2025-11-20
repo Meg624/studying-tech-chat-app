@@ -56,6 +56,11 @@ export default function MessageView({
     return updated - created > 1000;
   };
 
+  // ✅ 親から渡されたmessagesが変更されたらlocalMessagesを更新
+  useEffect(() => {
+    setLocalMessages(messages);
+  }, [messages]);
+
   const startEdit = (message: Message) => {
     setEditingId(message.id);
     setEditContent(message.content);
